@@ -104,7 +104,7 @@ jags <- jags.model(textConnection(mod.string),
                    n.chains=1, n.adapt=100, data=list("GEN_NUM"=GEN_NUM,"POP_NUM" = POP_NUM))
 #burn in
 update( jagsModel , n.iter=1000 )
-samplesBloodLastGen <- coda.samples(jags, c("personBlood[4,1]"), 500, thin=1)
+samplesBloodLastGen <- coda.samples(jags, c("personAllele[4,1,1]","personAllele[4,1,2]"), 500, thin=1)
 
 # What is the probability distribution of blood groups in the last generation?
 plot(samplesBloodLastGen)
