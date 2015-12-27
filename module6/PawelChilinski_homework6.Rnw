@@ -1,0 +1,20 @@
+\documentclass{article}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+<<fig=TRUE, echo=FALSE>>=
+load("data.RData")
+library(ggplot2)
+p <- ggplot() + 
+    geom_point(data = time_accuracy, aes(x = time, y = accuracy, color="ASGD")) +
+    geom_point(data = time_accuracy_r, aes(x = time, y = accuracy, color="R"), size=4)  +
+    ggtitle("test set accuracy versus computation time") +
+    labs(color="accuracy") +
+    xlab("time[s]")
+p
+@
+
+ASGD achives the same accuracy as R implementation in several time shorter time.
+
+\end{document}
