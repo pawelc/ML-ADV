@@ -43,4 +43,12 @@ m <- ksvm(as.kernelMatrix(s),c(1,0,0),type="C-svc",kernel="matrix")
 ypred <- predict(m,as.kernelMatrix(s))
 
 source("execrcise7.R")
-generateGraphsGramWithLabels(100)
+generateGraphsGramWithLabels(50)
+
+
+install.packages("pROC")
+data(aSAH)
+
+# Basic example
+plot(roc(aSAH$outcome, aSAH$s100b,
+    levels=c("Good", "Poor")))

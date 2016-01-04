@@ -1,6 +1,7 @@
 require(igraph)
 require(kernlab)
 require(Rchemcpp)
+require(pROC)
 set.seed(1)
 
 generateGraphsGramWithLabels<-function(n){
@@ -8,7 +9,7 @@ generateGraphsGramWithLabels<-function(n){
   labels<-c()
   for(i in 1:n){#generate n graphs
     #of random number of vertices
-    numVert <- sample(10:20, 1)
+    numVert <- sample(3:4, 1)
     #generate tree
     t<-graph.tree(numVert,2,mode="undirected")
     #get its adjecency matrix
@@ -35,26 +36,24 @@ generateGraphsGramWithLabels<-function(n){
       
     set$addMoleculeCopy(createRMolecule(rep('c',numVert), adjMat))
   }
-  list(gram=sd2gramSpectrum(set),labels=labels)
+  list(gram=sd2gramSpectrum(set,kernelType="spectrum"),labels=labels)
 }
 
-n=25
+n=40
 dataK <- generateGraphsGramWithLabels(n)
 
 # Split the data into training set and test set
-ntrain <- round(n*0.8) # number of training examples
+ntrain <- round(n*0.3) # number of training examples
 tindex <- sample(n,ntrain) # indices of training samples
 kernelMatrix<-as.kernelMatrix(dataK$gram)
-model <- ksvm(kernelMatrix[tindex,tindex],dataK$labels[tindex],type="C-svc",kernel='matrix')
+model <- ksvm(kernelMatrix[tindex,tindex],dataK$labels[tindex],type="C-svc",kernel='matrix',prob.model=TRUE)
 
-# Then it becomes tricky. We must compute the test-vs-SV kernel matrix
 # remove train
 testK <- kernelMatrix[-tindex,tindex]
 # extract the SVs from the train
 testK <- testK[,SVindex(model),drop=FALSE]
 # predict with the SVM
 # convert the matrix testK to a kernelMatrix
-ypred <- predict(model,as.kernelMatrix(testK))
-dataK$labels[-tindex]
+ypred <- predict(model,as.kernelMatrix(testK),type="probabilities")
 
-
+plot(roc(ifelse(dataK$labels[-tindex]==-1,0,1) ,ypred[,2]))
