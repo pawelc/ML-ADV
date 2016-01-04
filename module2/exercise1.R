@@ -91,7 +91,9 @@ mod.string <- "model {
       personAllele[g,p,1] <- ifelse(g==2, personAlleleApr[g,p,1], personAlleleFromParent[g,p,1])
       personAllele[g,p,2] <- ifelse(g==2, personAlleleApr[g,p,2], personAlleleFromParent[g,p,2])
 
-      personBlood[g,p] ~ dcat(allelesToBlood[personAllele[g,1,1],personAllele[g,1,2],]) # blood group to numerical value A = 1, B = 2, AB = 3, O = 4
+      # blood group is categorical distribution depending on person 2 alleles
+      # blood group to numerical value A = 1, B = 2, AB = 3, O = 4
+      personBlood[g,p] ~ dcat(allelesToBlood[personAllele[g,1,1],personAllele[g,1,2],]) 
     }
   }
 
@@ -100,20 +102,25 @@ mod.string <- "model {
 GEN_NUM <- 3
 POP_NUM <- 50
 
-jags <- jags.model(textConnection(mod.string),
+############### Question 1
+jagsModel <- jags.model(textConnection(mod.string),
                    n.chains=1, n.adapt=100, data=list("GEN_NUM"=GEN_NUM,"POP_NUM" = POP_NUM))
 #burn in
 update( jagsModel , n.iter=1000 )
-samplesBloodLastGen <- coda.samples(jags, c("personAllele[4,1,1]","personAllele[4,1,2]"), 500, thin=1)
+samples <- coda.samples(jagsModel, c("personBlood[4,1]"), 500, thin=1)
 
 # What is the probability distribution of blood groups in the last generation?
-plot(samplesBloodLastGen)
+plot(samples)
 
+############### Question 2
 #setting evidence
 personBlood <- array(NA,dim=c(4,POP_NUM));
 personBlood[4,] <- rep(3,POP_NUM);
+# I am not sure why but here I get "Error in node personBlood[4,1] Observed node inconsistent with unobserved parents at initialization." 
+# but when I check this node distribution I see that 3 (AB blood group) is possible in this node
 jagsEvidence <- jags.model(textConnection(mod.string),
-                   n.chains=1, n.adapt=100, data=list("GEN_NUM"=GEN_NUM,"POP_NUM" = POP_NUM, "personBlood"=personBlood))
+                   n.chains=1, n.adapt=1000, data=list("GEN_NUM"=GEN_NUM,"POP_NUM" = POP_NUM, "personBlood"=personBlood))
 update( jagsEvidence , n.iter=1000 )
 samplesBlood1stGen <- coda.samples(jagsEvidence, c("personBlood[2,1]"), 500, thin=1)
 plot(samplesBlood1stGen)
+

@@ -1,29 +1,28 @@
-#install.packages("rjags", dependencies=TRUE)
-require(rjags)
+library(rjags)
 library(coda)
 
 mod.string <- "model {
-  for(i in 1:N) {
-    X[i] ~ dexp(1.0)
+
+  p1[1]<-1
+  p1[2]<-1
+
+  p2[1]<-1
+  p2[2]<-10
+
+  for(i in 1:3){
+    x[i] ~ dcat(p1)
+    y[i] ~ dcat(p2)
+
+    z[i] <- ifelse(i==2, x[i], y[i])
   }
-  Y <- sum(X)
-  Y_e ~ dnorm(Y, 1000)
 }"
 
-N <- 10 # how many r.v.’s to add?
-
-# UNCONDITIONAL
 jags <- jags.model(textConnection(mod.string),
-                   n.chains=1, n.adapt=100, data=list("N"=N))
-j <- coda.samples(jags, c("Y"), 1000, thin=1)
-plot(j)
-autocorr.plot(j)
+                   n.chains = 4,
+                   n.adapt = 100)
 
-# CONDITION on Y=5
-jags <- jags.model(textConnection(mod.string),
-                   n.chains=1, n.adapt=10000,
-                   data=list("N"=N, "Y_e"=5))
-j <- coda.samples(jags, c("X[1]"), 100000, thin=100)
-plot(j)
-autocorr.plot(j)
-j[[1]] # actual samples
+update(jags, 1000)
+
+x <- coda.samples(jags, c("z"), 500, thin=1)
+
+plot(x)
