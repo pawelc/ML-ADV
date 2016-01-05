@@ -38,7 +38,7 @@ generateGraphsGramWithLabels<-function(n){
   list(gram=sd2gramSpectrum(set),labels=labels)
 }
 
-n=25
+n=50
 dataK <- generateGraphsGramWithLabels(n)
 
 # Split the data into training set and test set

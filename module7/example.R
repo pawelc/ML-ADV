@@ -28,6 +28,7 @@ s <- sd2gramSpectrum(set)
 print(s)
 
 require(igraph)
+install.packages("igraph")
 t<-graph.tree(15,2,mode="undirected")
 adjMat <- get.adjacency(t,sparse=0)
 adjMat[1,4]<-1
